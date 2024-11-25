@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  lock-stock-dev-db:
+    container_name: lock-stock-dev-db
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "9331:5432"
+    networks:
+      - lock_stock_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - lock_stock_db_data:/var/lib/postgresql/data
+
+  lock-stock-dev-app:
+    container_name: lock-stock-dev-app
+    build:
+      context: "."
+      dockerfile: "./build/docker/go/Dockerfile"
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./development/.go.env
+    volumes:
+      - ./logs:/app/logs
+      - ./development:/app/development # Монтируем папку development
+    depends_on:
+      lock-stock-dev-db:
+        condition: service_healthy
+    networks:
+      - lock_stock_network
+
+volumes:
+  lock_stock_db_data:
+
+networks:
+  lock_stock_network:
