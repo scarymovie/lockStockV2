@@ -28,6 +28,9 @@ WORKDIR /app
 # Копируем скомпилированное приложение из предыдущего этапа
 COPY --from=builder /app/cmd/app/app .
 
+# Копируем конфигурационный файл
+COPY ./internal/config/config.dev.yaml ./internal/config/config.dev.yaml
+
 # Открываем порт
 EXPOSE 8080
 
